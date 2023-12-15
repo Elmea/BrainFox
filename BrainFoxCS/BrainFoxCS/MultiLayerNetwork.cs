@@ -1,4 +1,5 @@
 ﻿using BrainFoxCS.Component;
+using System;
 using System.Collections.Generic;
 
 namespace BrainFoxCS
@@ -64,6 +65,23 @@ namespace BrainFoxCS
                 layer.CalcOutputs();
             outputLayer.CalcOutputs();
             return outputLayer.GetOutputValues();
+        }
+
+        public void SetAllFunction(ActivationFunction function)
+        {
+            outputLayer.SetActivationFunction(function);
+            foreach (Layer.InnerLayer layer in hiddenLayers)
+                layer.SetActivationFunction(function);
+        }
+
+        public void SetHiddenLayerFunction(int index, ActivationFunction function)
+        {
+            hiddenLayers[index].SetActivationFunction(function);
+        }
+
+        public void SetOutputLayerFunction(ActivationFunction function)
+        {
+            outputLayer.SetActivationFunction(function);
         }
 
         #region HiddenLayersFunction
@@ -173,8 +191,8 @@ namespace BrainFoxCS
         public void BackPropagation(float gain, float[] desiredOutput)
         {
             CalcOutputs();
-            outputLayer.OutputBackPropagation(gain, desiredOutput);
 
+            outputLayer.OutputBackPropagation(gain, desiredOutput);
             for (int i = hiddenLayers.Count-1; i >= 0; i--)
             {
                 hiddenLayers[i].HiddenBackPropagation(gain);

@@ -1,10 +1,11 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace BrainFoxCS
 {
     enum ActivationFunction 
     {
-        threshold,
         sigmoid,
         tanh,
         ReLU
@@ -30,9 +31,6 @@ namespace BrainFoxCS
             {
                 switch (activationFunction)
                 {
-                    case ActivationFunction.threshold:
-                        return ThresholdFunction(input);
-                
                     case ActivationFunction.sigmoid: 
                         return SigmoidFunction(input, sigmoidBeta);
 
@@ -57,7 +55,7 @@ namespace BrainFoxCS
 
             protected static float SigmoidFunction(float input, float beta) 
             {
-                return  1 / (1 + MathF.Exp(-(beta - input)));
+                return  1 / (1 + MathF.Exp(-(beta * input)));
             }
 
             protected static float TanhFunction(float input) 
@@ -70,6 +68,39 @@ namespace BrainFoxCS
                 if (input < 0) return 0;
 
                 return input;
+            }
+
+            public float CalcActivationFunctionDerivative(float input)
+            {
+                switch (activationFunction)
+                {
+                    case ActivationFunction.sigmoid:
+                        return SimplifiedSigmoidDerivative(input);
+
+                    case ActivationFunction.tanh:
+                        return SimplifiedTanhDerivative(input);
+
+                    case ActivationFunction.ReLU:
+                        return ReLUDerivative(input);
+
+                    default:
+                        Debug.Assert(false, "WARNING : Activation function not properly setted or not implemented");
+                        return 0;
+                }
+            }
+
+            protected static float ReLUDerivative(float input)
+            {
+                return input > 0f ? 1f : 0f;
+            }
+            protected static float SimplifiedSigmoidDerivative(float sigmoidValue)
+            {
+                return sigmoidValue * (1 - sigmoidValue);
+            }
+
+            protected static float SimplifiedTanhDerivative(float input)
+            {
+                return (1 - input * input) / 2.0f;
             }
 
             #endregion
@@ -96,14 +127,14 @@ namespace BrainFoxCS
 
                 return weights;
             }
-
+            
             override public void CalcOutput() 
             {
                 float input = 0;
 
                 foreach (WeightedInputPerceptron weightedInput in inputs) 
                 {
-                    input = weightedInput.perceptron.Output * weightedInput.weight;
+                    input += weightedInput.perceptron.Output * weightedInput.weight;
                 }
 
                 output = CalcActivationFunction(input);
@@ -113,7 +144,7 @@ namespace BrainFoxCS
             {
                 WeightedInputPerceptron newOne = new WeightedInputPerceptron();
                 newOne.perceptron = perceptron;
-                newOne.weight = 1;
+                newOne.weight = 1.0f;
 
                 inputs.Add(newOne);
             }
@@ -135,12 +166,13 @@ namespace BrainFoxCS
                 inputs.Clear(); 
             }
 
-            public void Backpropagation(float gain)
+            public void Backpropagation(float gain, float currentError)
             {
                 for (int i = 0; i < inputs.Count; i++)
                 {
-                    float delta = gain * error * inputs[i].perceptron.Output;
+                    float delta = gain * currentError * inputs[i].perceptron.Output;
                     inputs[i].weight += delta;
+                    error = currentError;
                 }
             }
 
@@ -163,7 +195,7 @@ namespace BrainFoxCS
 
             override public void CalcOutput()
             {
-                output = CalcActivationFunction(input);
+                output = input;
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using System.Runtime.ConstrainedExecution;
+﻿using System;
+using System.Collections.Generic;
 
 namespace BrainFoxCS.Component
 {
@@ -219,7 +220,7 @@ namespace BrainFoxCS.Component
 
             public void HiddenBackPropagation(float gain)
             {
-                if (nextLayer != null)
+                if (nextLayer == null)
                     return;
 
                 List<Perceptron> nextPerceptronList = nextLayer.perceptrons;
@@ -233,25 +234,24 @@ namespace BrainFoxCS.Component
                     }
 
                     InnerPerceptron current = perceptrons[i] as InnerPerceptron;
-                    float outputVal = current.Output;
-                    current.error = outputVal * (1 - outputVal) * sum;
-                    current.Backpropagation(gain);
+                    float error = current.CalcActivationFunctionDerivative(current.Output) * sum;
+                    current.Backpropagation(gain, error);
                 }
             }
 
             public void OutputBackPropagation(float gain, float[] desiredOutput)
             {
-                int i = 0;
                 if (desiredOutput.Length < perceptrons.Count)
                     throw new ArgumentOutOfRangeException();
 
+                int i = 0;
                 // Calc error and then adjust weight values
                 foreach (Perceptron perceptron in perceptrons)
                 {
-                    i++;
                     InnerPerceptron per = perceptron as InnerPerceptron;
-                    per.error = per.Output * (1 - per.Output) * (desiredOutput[i] - per.Output);
-                    per.Backpropagation(gain);
+                    float error = per.CalcActivationFunctionDerivative(per.Output) * (desiredOutput[i] - per.Output);
+                    per.Backpropagation(gain, error);
+                    i++;    
                 }
             }
         }
