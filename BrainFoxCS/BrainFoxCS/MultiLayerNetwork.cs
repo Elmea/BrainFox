@@ -1,6 +1,5 @@
 ﻿using BrainFoxCS.Component;
-using System.ComponentModel.Design;
-using System.Dynamic;
+using System.Collections.Generic;
 
 namespace BrainFoxCS
 {
@@ -158,7 +157,7 @@ namespace BrainFoxCS
 
         #endregion
 
-        MultiLayerNetwork(int inputsCount = 1, int outputsCount = 1) 
+        public MultiLayerNetwork(int inputsCount = 1, int outputsCount = 1) 
         {
             if (inputsCount < 1)
                 inputsCount = 1;
