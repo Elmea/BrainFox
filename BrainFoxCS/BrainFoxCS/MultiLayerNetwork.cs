@@ -1,18 +1,60 @@
 ﻿using BrainFoxCS.Component;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace BrainFoxCS
 {
+    [Serializable()]
     class MultiLayerNetwork
     {
         public Layer.InputLayer inputLayer;
         private List<Layer.InnerLayer> hiddenLayers;
         private Layer.InnerLayer outputLayer;
 
+        /// <summary>
+        /// Set a name for the file, .brfox will be added
+        /// </summary>
+        static public MultiLayerNetwork SaveNetwork(string fileName)
+        {
+            //Format the object as Binary  
+            BinaryFormatter formatter = new BinaryFormatter();
+
+            //Reading the file from the server  
+            FileStream fs = File.Open(fileName, FileMode.Open);
+
+            object obj = formatter.Deserialize(fs);
+
+            MultiLayerNetwork result = (MultiLayerNetwork)obj;
+            fs.Close();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Look for a file with the .brfox  expansion
+        /// </summary>
+        public void LoadNetwork(string fileName)
+        {
+            //Format the object as Binary  
+            BinaryFormatter formatter = new BinaryFormatter();
+
+            //Reading the file from the server  
+            FileStream fs = File.OpenWrite(fileName);
+
+            formatter.Serialize(fs, this);
+            fs.Close();
+        }
+
         public int GetLayerCount()
         {
             return hiddenLayers.Count + 2;
+        }
+
+        public int GetHiddenLayerCount()
+        {
+            return hiddenLayers.Count;
         }
 
         public int[] GetPerceptronsByLayer()
@@ -73,6 +115,12 @@ namespace BrainFoxCS
             foreach (Layer.InnerLayer layer in hiddenLayers)
                 layer.SetActivationFunction(function);
         }
+
+        public void SetHiddenLayerWeights(int index, List<float[]> weight)
+        {
+            hiddenLayers[index].SetPercepWeights(weight);
+        }
+
 
         public void SetHiddenLayerFunction(int index, ActivationFunction function)
         {

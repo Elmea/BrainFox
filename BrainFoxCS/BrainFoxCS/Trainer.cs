@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using static BrainFoxCS.Trainer;
+using UnityEditor.VersionControl;
 
 namespace BrainFoxCS
 {
@@ -45,6 +45,27 @@ namespace BrainFoxCS
                     networkToTrain.BackPropagation(gain, trainingTable.referenceOutputs[j]);
                 }
             }
+        }
+    
+        
+        static public MultiLayerNetwork Breed(MultiLayerNetwork parentA, MultiLayerNetwork parentB)
+        {
+            MultiLayerNetwork result = new MultiLayerNetwork();
+
+            int HiddenLayerCount = parentA.GetHiddenLayerCount();
+            int[] percepByLayer = parentA.GetPerceptronsByLayer();
+
+            for (int i = 0; i < HiddenLayerCount; i++)
+            {
+                result.CreateHiddenLayer(percepByLayer[i]);
+
+                if (i % 2 == 0)
+                    result.SetHiddenLayerWeights(i, parentA.GetPercepWeightsOfLayer(i));
+                else 
+                    result.SetHiddenLayerWeights(i, parentB.GetPercepWeightsOfLayer(i));
+            }
+
+            return result;
         }
     }
 }

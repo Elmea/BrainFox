@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace BrainFoxCS.Component
 {
+    [Serializable()]
     abstract class Layer
     {
         protected List<Perceptron> perceptrons;
@@ -45,6 +46,7 @@ namespace BrainFoxCS.Component
             return values;
         }
 
+        [Serializable()]
         public class InputLayer : Layer
         {
             public void SetInputValue(int index, float value)
@@ -109,6 +111,7 @@ namespace BrainFoxCS.Component
             }
         }
 
+        [Serializable()]
         public class InnerLayer : Layer
         {
             Layer leadLayer;
@@ -200,6 +203,15 @@ namespace BrainFoxCS.Component
                 }
 
                 return result;
+            }
+
+            public void SetPercepWeights(List<float[]> weigtsByPercep)
+            {
+                for (int i = 0; i < perceptrons.Count; i++)
+                {
+                    InnerPerceptron percep = perceptrons[i] as InnerPerceptron;
+                    percep.SetConnectionWeights(weigtsByPercep[i]);
+                }
             }
 
             public InnerLayer(int outputsCount = 1, InnerLayer? nextLayer = null,

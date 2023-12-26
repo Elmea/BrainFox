@@ -13,6 +13,7 @@ namespace BrainFoxCS
 
     namespace Component
     {
+        [Serializable()]
         abstract class Perceptron
         {
             public float error = 0;
@@ -106,8 +107,10 @@ namespace BrainFoxCS
             #endregion
         }
 
+        [Serializable()]
         class InnerPerceptron : Perceptron
         {
+            [Serializable()]
             protected class WeightedInputPerceptron
             {
                 public Perceptron perceptron;
@@ -127,7 +130,14 @@ namespace BrainFoxCS
 
                 return weights;
             }
-            
+            public void SetConnectionWeights(float[] newWeights)
+            {
+                for (int i = 0; i < inputs.Count; i++)
+                {
+                    inputs[i].weight = newWeights[i];
+                }
+            }
+
             override public void CalcOutput() 
             {
                 float input = 0;
@@ -187,8 +197,21 @@ namespace BrainFoxCS
                     throw new ArgumentOutOfRangeException("Index is out of range : ", e);
                 }
             }
+
+            public void SetIncomingWeight(int index, float weight)
+            {
+                try
+                {
+                    inputs[index].weight = weight;
+                }
+                catch (IndexOutOfRangeException e)
+                {
+                    throw new ArgumentOutOfRangeException("Index is out of range : ", e);
+                }
+            }
         }
 
+        [Serializable()]
         class InputPerceptron : Perceptron
         {
             public float input = 0;
