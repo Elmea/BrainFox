@@ -7,16 +7,16 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace BrainFoxCS
 {
     [Serializable()]
-    class MultiLayerNetwork
+    public class MultiLayerNetwork
     {
         public Layer.InputLayer inputLayer;
         private List<Layer.InnerLayer> hiddenLayers;
         private Layer.InnerLayer outputLayer;
 
         /// <summary>
-        /// Set a name for the file, .brfox will be added
+        /// Look for a file with the .brfox  expansion
         /// </summary>
-        static public MultiLayerNetwork SaveNetwork(string fileName)
+        static public MultiLayerNetwork LoadNetwork(string fileName)
         {
             //Format the object as Binary  
             BinaryFormatter formatter = new BinaryFormatter();
@@ -33,15 +33,15 @@ namespace BrainFoxCS
         }
 
         /// <summary>
-        /// Look for a file with the .brfox  expansion
+        /// Set a name for the file, .brfox will be added
         /// </summary>
-        public void LoadNetwork(string fileName)
+        public void SaveNetwork(string fileName)
         {
             //Format the object as Binary  
             BinaryFormatter formatter = new BinaryFormatter();
 
             //Reading the file from the server  
-            FileStream fs = File.OpenWrite(fileName);
+            FileStream fs = File.OpenWrite(fileName + ".brfox");
 
             formatter.Serialize(fs, this);
             fs.Close();
@@ -80,6 +80,11 @@ namespace BrainFoxCS
             return hiddenLayers[index].GetPercepWeights();
         }
 
+        public List<float[]> GetPercepWeightsOfOutputLayer()
+        {
+            return outputLayer.GetPercepWeights();
+        }
+
         #region OutputLayer
         public void AddOutput()
         {
@@ -95,6 +100,17 @@ namespace BrainFoxCS
         {
             return outputLayer.GetOutputValues();
         }
+
+        public void SetOutputLayerWeights(List<float[]> weight)
+        {
+            outputLayer.SetPercepWeights(weight);
+        }
+
+        public void RandomizeOutputLayerWeights()
+        {
+            outputLayer.RandomizeWeights();
+        }
+
         #endregion
 
         /// <summary>
@@ -116,23 +132,32 @@ namespace BrainFoxCS
                 layer.SetActivationFunction(function);
         }
 
-        public void SetHiddenLayerWeights(int index, List<float[]> weight)
-        {
-            hiddenLayers[index].SetPercepWeights(weight);
-        }
-
-
-        public void SetHiddenLayerFunction(int index, ActivationFunction function)
-        {
-            hiddenLayers[index].SetActivationFunction(function);
-        }
 
         public void SetOutputLayerFunction(ActivationFunction function)
         {
             outputLayer.SetActivationFunction(function);
         }
 
+        public ActivationFunction GetOutputLayerFunction()
+        {
+            return outputLayer.GetActivationFunction();
+        }
+
         #region HiddenLayersFunction
+        public void SetHiddenLayerWeights(int index, List<float[]> weight)
+        {
+            hiddenLayers[index].SetPercepWeights(weight);
+        }
+
+        public ActivationFunction GetHiddenLayerFunction(int index)
+        {
+            return hiddenLayers[index].GetActivationFunction();
+        }
+
+        public void SetHiddenLayerFunction(int index, ActivationFunction function)
+        {
+            hiddenLayers[index].SetActivationFunction(function);
+        }
 
         public void CreateHiddenLayer(int perceptronCount = 1)
         {
@@ -209,6 +234,11 @@ namespace BrainFoxCS
             }
         }
 
+        public int GetPerceptronCountHIddenLayer(int layerIndex)
+        {
+            return hiddenLayers[layerIndex].GetPerceptronCount();
+        }
+
         public void RemovePerceptronToHIddenLayer(int layerIndex)
         {
             try
@@ -221,7 +251,29 @@ namespace BrainFoxCS
             }
         }
 
+        public void RandomizeHiddenLayerWeights(int layerIndex)
+        {
+            try
+            {
+                hiddenLayers[layerIndex].RandomizeWeights();
+            }
+            catch (IndexOutOfRangeException e)
+            {
+                throw new ArgumentOutOfRangeException("Index is out of range : ", e);
+            }
+        }
+
         #endregion
+
+        public int GetInputsCount()
+        {
+            return inputLayer.GetPerceptronCount();
+        }
+
+        public int GetOutputsCount()
+        {
+            return outputLayer.GetPerceptronCount();
+        }
 
         public MultiLayerNetwork(int inputsCount = 1, int outputsCount = 1) 
         {
@@ -244,6 +296,21 @@ namespace BrainFoxCS
             for (int i = hiddenLayers.Count-1; i >= 0; i--)
             {
                 hiddenLayers[i].HiddenBackPropagation(gain);
+            }
+        }
+
+        public void PerturbWeight(int layer, int percep, int connection, float perturbation)
+        {
+            try
+            {
+                if (layer == hiddenLayers.Count)
+                    outputLayer.PerturbWeight(percep, connection, perturbation);
+                else
+                    hiddenLayers[layer].PerturbWeight(percep, connection, perturbation);
+            }
+            catch (IndexOutOfRangeException e)
+            {
+                throw new ArgumentOutOfRangeException("Index is out of range : ", e);
             }
         }
     }

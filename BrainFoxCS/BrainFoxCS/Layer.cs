@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace BrainFoxCS.Component
 {
     [Serializable()]
-    abstract class Layer
+    public abstract class Layer
     {
         protected List<Perceptron> perceptrons;
         protected ActivationFunction layerFunction;
@@ -14,6 +14,10 @@ namespace BrainFoxCS.Component
             layerFunction = function;
             foreach (Perceptron p in perceptrons)
                 p.activationFunction = function;
+        }
+        public ActivationFunction GetActivationFunction()
+        {
+            return layerFunction;
         }
 
         public void CalcOutputs()
@@ -205,12 +209,34 @@ namespace BrainFoxCS.Component
                 return result;
             }
 
+            public void PerturbWeight(int percep, int connection, float perturbation)
+            {
+                try
+                {
+                    InnerPerceptron innerPerceptron = perceptrons[percep] as InnerPerceptron;
+                    innerPerceptron.PerturbWeight(connection, perturbation);
+                }
+                catch (IndexOutOfRangeException e) 
+                {
+                    throw new ArgumentOutOfRangeException("Index is out of range : ", e);
+                }
+            }
+
             public void SetPercepWeights(List<float[]> weigtsByPercep)
             {
                 for (int i = 0; i < perceptrons.Count; i++)
                 {
                     InnerPerceptron percep = perceptrons[i] as InnerPerceptron;
                     percep.SetConnectionWeights(weigtsByPercep[i]);
+                }
+            }
+
+            public void RandomizeWeights()
+            {
+                for (int i = 0; i < perceptrons.Count; i++)
+                {
+                    InnerPerceptron percep = perceptrons[i] as InnerPerceptron;
+                    percep.RandomizeWeights();
                 }
             }
 

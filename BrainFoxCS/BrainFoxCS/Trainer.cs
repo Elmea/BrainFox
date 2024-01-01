@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEditor.VersionControl;
+using UnityEngine;
 
 namespace BrainFoxCS
 {
@@ -30,11 +32,11 @@ namespace BrainFoxCS
             {
                 if (trainingTable.referenceInputs.Length > trainingTable.referenceOutputs.Length)
                 {
-                    Debug.Assert(false, "!!! Reference outputs are missing !!!");
+                    System.Diagnostics.Debug.Assert(false, "!!! Reference outputs are missing !!!");
                     return;
                 }
 
-                Debug.Assert(false, "!!! Reference inputs are missing !!!");
+                System.Diagnostics.Debug.Assert(false, "!!! Reference inputs are missing !!!");
             }
 
             for (int i = 0; i < iteration; i++) 
@@ -50,20 +52,91 @@ namespace BrainFoxCS
         
         static public MultiLayerNetwork Breed(MultiLayerNetwork parentA, MultiLayerNetwork parentB)
         {
-            MultiLayerNetwork result = new MultiLayerNetwork();
+            MultiLayerNetwork result = new MultiLayerNetwork(parentA.GetInputsCount(), parentA.GetOutputsCount());
 
             int HiddenLayerCount = parentA.GetHiddenLayerCount();
-            int[] percepByLayer = parentA.GetPerceptronsByLayer();
+            int[] percepByLayerA = parentA.GetPerceptronsByLayer();
+            int[] percepByLayerB = parentB.GetPerceptronsByLayer();
 
             for (int i = 0; i < HiddenLayerCount; i++)
             {
-                result.CreateHiddenLayer(percepByLayer[i]);
-
                 if (i % 2 == 0)
+                {
+                    result.CreateHiddenLayer(percepByLayerA[i + 1]);
                     result.SetHiddenLayerWeights(i, parentA.GetPercepWeightsOfLayer(i));
-                else 
+                    result.SetHiddenLayerFunction(i, parentA.GetHiddenLayerFunction(i));
+                }
+                else
+                {
+                    result.CreateHiddenLayer(percepByLayerB[i + 1]);
                     result.SetHiddenLayerWeights(i, parentB.GetPercepWeightsOfLayer(i));
+                    result.SetHiddenLayerFunction(i, parentB.GetHiddenLayerFunction(i));
+                }
             }
+
+            result.SetOutputLayerFunction(parentA.GetOutputLayerFunction());
+            result.SetOutputLayerWeights(parentA.GetPercepWeightsOfOutputLayer());
+
+            return result;
+        }
+    
+        static public void Mutate(MultiLayerNetwork NeuralNetwork, float addNeuronProb = 0.25f, float rmNeuronProb = 0.15f, float perturbWeightProb = 0.25f)
+        {
+            System.Random rand = new System.Random();
+
+            int HiddenLayerCount = NeuralNetwork.GetHiddenLayerCount();
+
+            float randomValue = (float)rand.NextDouble();
+            if (randomValue < addNeuronProb) 
+            {
+                int layerToMutate = rand.Next(0, HiddenLayerCount - 1);
+                NeuralNetwork.AddPerceptronToHIddenLayer(layerToMutate);
+            }
+
+            randomValue = (float)rand.NextDouble();
+            if (randomValue > rmNeuronProb)
+            {
+                int layerToMutate = rand.Next(0, HiddenLayerCount - 1);
+                if (NeuralNetwork.GetPerceptronCountHIddenLayer(layerToMutate) > 1)
+                    NeuralNetwork.RemovePerceptronToHIddenLayer(layerToMutate);
+            }
+
+            randomValue = (float)rand.NextDouble();
+            if (randomValue < perturbWeightProb)
+            {
+                int layerToMutate = rand.Next(0, HiddenLayerCount - 1);
+                int percepId = rand.Next(0, NeuralNetwork.GetPerceptronCountHIddenLayer(layerToMutate));
+                int connectionId;
+                if (layerToMutate > 0)
+                    connectionId = rand.Next(0, NeuralNetwork.GetPerceptronCountHIddenLayer(layerToMutate - 1));
+                else
+                    connectionId = rand.Next(0, NeuralNetwork.inputLayer.GetPerceptronCount());
+
+                float perturbation = (float)rand.NextDouble() - 0.5f;
+
+                NeuralNetwork.PerturbWeight(layerToMutate, percepId, connectionId, perturbation);
+            }
+        }
+
+        static public MultiLayerNetwork GenerateRandomNN(int inputsCount, int outputsCount, int HiddenLayerCount, int maxPercepOnLayer = 1, int minPercepOnLayer = 2)
+        {
+            if (minPercepOnLayer < 1)
+                minPercepOnLayer = 1;
+
+            if (maxPercepOnLayer < 1)
+                maxPercepOnLayer = 1;
+
+            MultiLayerNetwork result = new MultiLayerNetwork(inputsCount, outputsCount);
+            System.Random rand = new System.Random();
+
+            for (int i = 0; i < HiddenLayerCount; i++)
+            {
+                int percepToCreate = rand.Next(minPercepOnLayer, maxPercepOnLayer + 1);
+                result.CreateHiddenLayer(percepToCreate);
+                result.RandomizeHiddenLayerWeights(i);
+            }
+
+            result.RandomizeOutputLayerWeights();
 
             return result;
         }

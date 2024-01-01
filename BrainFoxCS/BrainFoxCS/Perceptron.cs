@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace BrainFoxCS
 {
-    enum ActivationFunction 
+    public enum ActivationFunction 
     {
         sigmoid,
         tanh,
@@ -14,7 +14,7 @@ namespace BrainFoxCS
     namespace Component
     {
         [Serializable()]
-        abstract class Perceptron
+        public abstract class Perceptron
         {
             public float error = 0;
             protected float output = 0;
@@ -108,7 +108,7 @@ namespace BrainFoxCS
         }
 
         [Serializable()]
-        class InnerPerceptron : Perceptron
+        public class InnerPerceptron : Perceptron
         {
             [Serializable()]
             protected class WeightedInputPerceptron
@@ -134,7 +134,20 @@ namespace BrainFoxCS
             {
                 for (int i = 0; i < inputs.Count; i++)
                 {
+                    if (i >= newWeights.Length)
+                        break;
+
                     inputs[i].weight = newWeights[i];
+                }
+            }
+
+            public void RandomizeWeights()
+            {
+                System.Random rand = new System.Random();
+
+                for (int i = 0; i < inputs.Count; i++)
+                {
+                    inputs[i].weight = (float)rand.NextDouble() - 0.5f;
                 }
             }
 
@@ -154,7 +167,7 @@ namespace BrainFoxCS
             {
                 WeightedInputPerceptron newOne = new WeightedInputPerceptron();
                 newOne.perceptron = perceptron;
-                newOne.weight = 1.0f;
+                newOne.weight = 0.75f;
 
                 inputs.Add(newOne);
             }
@@ -209,10 +222,15 @@ namespace BrainFoxCS
                     throw new ArgumentOutOfRangeException("Index is out of range : ", e);
                 }
             }
+
+            public void PerturbWeight(int index, float value)
+            {
+                inputs[index].weight += value;
+            }
         }
 
         [Serializable()]
-        class InputPerceptron : Perceptron
+        public class InputPerceptron : Perceptron
         {
             public float input = 0;
 
