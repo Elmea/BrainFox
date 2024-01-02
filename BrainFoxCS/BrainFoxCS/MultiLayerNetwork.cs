@@ -29,6 +29,7 @@ namespace BrainFoxCS
             MultiLayerNetwork result = (MultiLayerNetwork)obj;
             fs.Close();
 
+            Console.WriteLine("Succesfully loaded " + fileName);
             return result;
         }
 

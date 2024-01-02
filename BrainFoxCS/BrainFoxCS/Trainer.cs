@@ -89,32 +89,52 @@ namespace BrainFoxCS
             float randomValue = (float)rand.NextDouble();
             if (randomValue < addNeuronProb) 
             {
-                int layerToMutate = rand.Next(0, HiddenLayerCount - 1);
-                NeuralNetwork.AddPerceptronToHIddenLayer(layerToMutate);
+                if (HiddenLayerCount == 0)
+                {
+                    NeuralNetwork.CreateHiddenLayer(1);
+                }
+                else
+                {
+                    int layerToMutate = rand.Next(0, HiddenLayerCount - 1);
+                    NeuralNetwork.AddPerceptronToHIddenLayer(layerToMutate);
+                }
             }
 
             randomValue = (float)rand.NextDouble();
             if (randomValue > rmNeuronProb)
             {
-                int layerToMutate = rand.Next(0, HiddenLayerCount - 1);
-                if (NeuralNetwork.GetPerceptronCountHIddenLayer(layerToMutate) > 1)
-                    NeuralNetwork.RemovePerceptronToHIddenLayer(layerToMutate);
+                if (HiddenLayerCount != 0)
+                {
+                    int layerToMutate = rand.Next(0, HiddenLayerCount - 1);
+                    if (NeuralNetwork.GetPerceptronCountHIddenLayer(layerToMutate) > 1)
+                        NeuralNetwork.RemovePerceptronToHIddenLayer(layerToMutate);
+                }
             }
 
+            HiddenLayerCount = NeuralNetwork.GetHiddenLayerCount();
             randomValue = (float)rand.NextDouble();
             if (randomValue < perturbWeightProb)
             {
-                int layerToMutate = rand.Next(0, HiddenLayerCount - 1);
-                int percepId = rand.Next(0, NeuralNetwork.GetPerceptronCountHIddenLayer(layerToMutate));
-                int connectionId;
-                if (layerToMutate > 0)
-                    connectionId = rand.Next(0, NeuralNetwork.GetPerceptronCountHIddenLayer(layerToMutate - 1));
-                else
-                    connectionId = rand.Next(0, NeuralNetwork.inputLayer.GetPerceptronCount());
-
                 float perturbation = (float)rand.NextDouble() - 0.5f;
+                int connectionId;
+                int percepId;
+                if (HiddenLayerCount != 0)
+                {
+                    int layerToMutate = rand.Next(0, HiddenLayerCount - 1);
+                    percepId = rand.Next(0, NeuralNetwork.GetPerceptronCountHIddenLayer(layerToMutate));
+                    if (layerToMutate > 0)
+                        connectionId = rand.Next(0, NeuralNetwork.GetPerceptronCountHIddenLayer(layerToMutate - 1));
+                    else
+                        connectionId = rand.Next(0, NeuralNetwork.inputLayer.GetPerceptronCount());
 
-                NeuralNetwork.PerturbWeight(layerToMutate, percepId, connectionId, perturbation);
+                    NeuralNetwork.PerturbWeight(layerToMutate, percepId, connectionId, perturbation);
+                }
+                else
+                {
+                    connectionId = rand.Next(0, NeuralNetwork.inputLayer.GetPerceptronCount());
+                    percepId = rand.Next(0, NeuralNetwork.GetOutputsCount());
+                    NeuralNetwork.PerturbWeight(NeuralNetwork.GetHiddenLayerCount(), percepId, connectionId, perturbation);
+                }
             }
         }
 
